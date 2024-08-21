@@ -38,7 +38,8 @@ const ProductModal = (props) => {
   return (
     <Modal show={props.showModal} onHide={props.closeModal} size="lg" centered>
       <div className="p-3">
-        <Table>
+      <h3 className="fw-bold pb-2 pb-md-4">Edit Product</h3>
+      <Table>
           <thead>
             <tr>
               <th>ITEM</th>

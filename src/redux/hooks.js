@@ -44,8 +44,8 @@ const currencyMap = {
   "₿": "BTC",
 };
 
+// hook to fetch and set currency into redux
 export const useCurrency = (symbol) => {
-
   const API_KEY = process.env.REACT_APP_API_KEY;
   console.log("API key", API_KEY);
   const dispatch = useDispatch();

@@ -9,13 +9,19 @@ import InvoiceItem from "./InvoiceItem";
 import InvoiceModal from "./InvoiceModal";
 import { BiArrowBack } from "react-icons/bi";
 import InputGroup from "react-bootstrap/InputGroup";
-import { useDispatch } from "react-redux";
-import { addInvoice, updateInvoice } from "../redux/invoicesSlice";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addInvoice,
+  updateInvoice,
+  updateInvoiceItems,
+} from "../redux/invoicesSlice";
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import generateRandomId from "../utils/generateRandomId";
 import { useInvoiceListData } from "../redux/hooks";
+import { addProduct, updateProduct } from "../redux/productSlice";
 
 const InvoiceForm = () => {
+  const productList = useSelector((state) => state.products);
   const dispatch = useDispatch();
   const params = useParams();
   const location = useLocation();
@@ -91,6 +97,7 @@ const InvoiceForm = () => {
       ...formData,
       items: [...formData.items, newItem],
     });
+
     handleCalculateTotal();
   };
 
@@ -134,6 +141,23 @@ const InvoiceForm = () => {
     });
 
     setFormData({ ...formData, items: updatedItems });
+    // const newProduct = updatedItems.find((item) => item.itemId === id);
+    // dispatch(
+    //   updateProduct({
+    //     itemId: newProduct.itemId,
+    //     updatedProduct: {
+    //       name: newProduct.itemName,
+    //       description: newProduct.itemDescription,
+    //       price: newProduct.itemPrice,
+    //     },
+    //   })
+    // );
+    // console.log(
+    //   "Editing new item and id  ",
+    //   newProduct.itemName,
+    //   newProduct.itemId
+    // );
+
     handleCalculateTotal();
   };
 
@@ -156,15 +180,91 @@ const InvoiceForm = () => {
     setIsOpen(false);
   };
 
-  const handleAddInvoice = () => {
+  const checkAndUpdateProduct = (item, productList, dispatch) => {
+    const existingProduct = productList.find(
+      (product) => product.name.toLowerCase() === item.itemName.toLowerCase()
+    );
+    console.log("existing product ", existingProduct);
+
+    if (existingProduct) {
+      // Update product's description and price
+      dispatch(
+        updateProduct({
+          itemId: existingProduct.id,
+          updatedProduct: {
+            ...existingProduct,
+            description: item.itemDescription,
+            price: item.itemPrice,
+          },
+        })
+      );
+      return existingProduct.id;
+    } else {
+      return null;
+    }
+  };
+
+  const updateInvoicesWithProduct = (productId, item, dispatch) => {
+    dispatch(
+      updateInvoiceItems({
+        itemId: productId,
+        updatedProduct: {
+          name: item.itemName,
+          description: item.itemDescription,
+          price: item.itemPrice,
+        },
+      })
+    );
+  };
+
+  const handleAddInvoice = async () => {
+    console.log("add invoice called");
+    const updatedFormData = { ...formData };
+    console.log("updated form data", updatedFormData);
+
+    updatedFormData.items = formData.items.map((item) => {
+      console.log("checking item of form ", item);
+      let productId = checkAndUpdateProduct(item, productList, dispatch);
+      console.log("we found the prodct id ", productId);
+
+      if (productId !== null) {
+        // If a product exists, update the invoice items and assign the product ID to the formData item
+        updateInvoicesWithProduct(productId, item, dispatch);
+        console.log(
+          "invoice updated with product on add invoice ",
+          productId,
+          item
+        );
+        return { ...item, itemId: productId };
+      } else {
+        console.log("product not found adding new ", item);
+        dispatch(
+          addProduct({
+            id: item.itemId,
+            name: item.itemName,
+            description: item.itemDescription,
+            price: item.itemPrice,
+          })
+        );
+        console.log("dispatched new item and id ", item.itemName, item.itemId);
+      }
+
+      return item;
+    });
     if (isEdit) {
-      dispatch(updateInvoice({ id: params.id, updatedInvoice: formData }));
+      console.log("Dispatching updateInvoice with payload:", {
+        id: params.id,
+        updatedInvoice: updatedFormData,
+      });
+      dispatch(
+        updateInvoice({ id: params.id, updatedInvoice: updatedFormData })
+      );
       alert("Invoice updated successfuly 🥳");
     } else if (isCopy) {
-      dispatch(addInvoice({ id: generateRandomId(), ...formData }));
+      dispatch(addInvoice({ id: generateRandomId(), ...updatedFormData }));
       alert("Invoice added successfuly 🥳");
     } else {
-      dispatch(addInvoice(formData));
+      dispatch(addInvoice(updatedFormData));
       alert("Invoice added successfuly 🥳");
     }
     navigate("/");

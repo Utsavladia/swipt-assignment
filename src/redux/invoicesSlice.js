@@ -45,6 +45,8 @@ const invoicesSlice = createSlice({
             console.log("found same invoice ", item.itemId, itemId);
           }
         });
+        invoice.total = invoice.items.reduce((sum, item) => sum + item.itemPrice*item.itemQuantity, 0);
+
       });
     },
   },

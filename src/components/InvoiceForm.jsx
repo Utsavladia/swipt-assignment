@@ -17,12 +17,17 @@ import {
 } from "../redux/invoicesSlice";
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import generateRandomId from "../utils/generateRandomId";
-import { useInvoiceListData } from "../redux/hooks";
+import { useCurrency, useInvoiceListData } from "../redux/hooks";
 import { addProduct, updateProduct } from "../redux/productSlice";
 
 const InvoiceForm = () => {
   const productList = useSelector((state) => state.products);
+  const currency = useSelector((state) => state.currency);
+  const { symbol, value } = currency;
   const dispatch = useDispatch();
+  const [selectedCurrency, setSelectedCurrency] = useState(symbol);
+  useCurrency(selectedCurrency);
+
   const params = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -75,6 +80,27 @@ const InvoiceForm = () => {
   useEffect(() => {
     handleCalculateTotal();
   }, []);
+
+//   useEffect(() => {
+//   // Ensure formData and items exist
+//   if (!formData || !formData.items) return;
+
+//   // Create a new array with updated prices
+//   const updatedItems = formData.items.map((item) => ({
+//     ...item,
+//     price: item.price * value // Convert price to selected currency
+//   }));
+
+//   // Update the state or formData with the new array
+//   setFormData((prevFormData) => ({
+//     ...prevFormData,
+//     items: updatedItems
+//   }));
+// }, [currency, value]);
+
+  const handleCurrencyChange = (event) => {
+    setSelectedCurrency(event.target.value);
+  };
 
   const handleRowDel = (itemToDelete) => {
     const updatedItems = formData.items.filter(
@@ -166,9 +192,9 @@ const InvoiceForm = () => {
     handleCalculateTotal();
   };
 
-  const onCurrencyChange = (selectedOption) => {
-    setFormData({ ...formData, currency: selectedOption.currency });
-  };
+  // const onCurrencyChange = (selectedOption) => {
+  //   setFormData({ ...formData, currency: selectedOption.currency });
+  // };
 
   const openModal = (event) => {
     event.preventDefault();
@@ -402,10 +428,11 @@ const InvoiceForm = () => {
               </Col>
             </Row>
             <InvoiceItem
+              value={value}
               onItemizedItemEdit={onItemizedItemEdit}
               onRowAdd={handleAddEvent}
               onRowDel={handleRowDel}
-              currency={formData.currency}
+              currency={symbol}
               items={formData.items}
             />
             <Row className="mt-4 justify-content-end">
@@ -413,8 +440,8 @@ const InvoiceForm = () => {
                 <div className="d-flex flex-row align-items-start justify-content-between">
                   <span className="fw-bold">Subtotal:</span>
                   <span>
-                    {formData.currency}
-                    {formData.subTotal}
+                    {symbol}
+                    {formData.subTotal * value}
                   </span>
                 </div>
                 <div className="d-flex flex-row align-items-start justify-content-between mt-2">
@@ -423,16 +450,16 @@ const InvoiceForm = () => {
                     <span className="small">
                       ({formData.discountRate || 0}%)
                     </span>
-                    {formData.currency}
-                    {formData.discountAmount || 0}
+                    {symbol}
+                    {formData.discountAmount * value || 0}
                   </span>
                 </div>
                 <div className="d-flex flex-row align-items-start justify-content-between mt-2">
                   <span className="fw-bold">Tax:</span>
                   <span>
                     <span className="small">({formData.taxRate || 0}%)</span>
-                    {formData.currency}
-                    {formData.taxAmount || 0}
+                    {symbol}
+                    {formData.taxAmount * value || 0}
                   </span>
                 </div>
                 <hr />
@@ -442,8 +469,8 @@ const InvoiceForm = () => {
                 >
                   <span className="fw-bold">Total:</span>
                   <span className="fw-bold">
-                    {formData.currency}
-                    {formData.total || 0}
+                    {symbol}
+                    {formData.total * value || 0}
                   </span>
                 </div>
               </Col>
@@ -479,7 +506,7 @@ const InvoiceForm = () => {
               info={{
                 isOpen,
                 id: formData.id,
-                currency: formData.currency,
+                currency: symbol,
                 currentDate: formData.currentDate,
                 invoiceNumber: formData.invoiceNumber,
                 dateOfIssue: formData.dateOfIssue,
@@ -490,35 +517,35 @@ const InvoiceForm = () => {
                 billFromEmail: formData.billFromEmail,
                 billFromAddress: formData.billFromAddress,
                 notes: formData.notes,
-                total: formData.total,
-                subTotal: formData.subTotal,
-                taxRate: formData.taxRate,
-                taxAmount: formData.taxAmount,
+                total: formData.total * value,
+                subTotal: formData.subTotal * value,
+                taxRate: formData.taxRate * value,
+                taxAmount: formData.taxAmount * value,
                 discountRate: formData.discountRate,
-                discountAmount: formData.discountAmount,
+                discountAmount: formData.discountAmount * value,
               }}
               items={formData.items}
-              currency={formData.currency}
-              subTotal={formData.subTotal}
-              taxAmount={formData.taxAmount}
-              discountAmount={formData.discountAmount}
-              total={formData.total}
+              currency={symbol}
+              subTotal={formData.subTotal * value}
+              taxAmount={formData.taxAmount * value}
+              discountAmount={formData.discountAmount * value}
+              total={formData.total * value}
             />
             <Form.Group className="mb-3">
               <Form.Label className="fw-bold">Currency:</Form.Label>
               <Form.Select
-                onChange={(event) =>
-                  onCurrencyChange({ currency: event.target.value })
-                }
+                value={selectedCurrency}
+                onChange={handleCurrencyChange}
                 className="btn btn-light my-1"
                 aria-label="Change Currency"
               >
+                <option value="₹">INR (Indian Rupee)</option>
                 <option value="$">USD (United States Dollar)</option>
                 <option value="£">GBP (British Pound Sterling)</option>
-                <option value="¥">JPY (Japanese Yen)</option>
-                <option value="$">CAD (Canadian Dollar)</option>
-                <option value="$">AUD (Australian Dollar)</option>
-                <option value="$">SGD (Singapore Dollar)</option>
+                <option value="J¥">JPY (Japanese Yen)</option>
+                <option value="C$">CAD (Canadian Dollar)</option>
+                <option value="A$">AUD (Australian Dollar)</option>
+                <option value="S$">SGD (Singapore Dollar)</option>
                 <option value="¥">CNY (Chinese Renminbi)</option>
                 <option value="₿">BTC (Bitcoin)</option>
               </Form.Select>

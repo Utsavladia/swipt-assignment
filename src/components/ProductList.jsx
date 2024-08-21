@@ -4,9 +4,12 @@ import { Link } from "react-router-dom";
 import { BiSolidPencil, BiArrowBack } from "react-icons/bi";
 import ProductModal from "./ProductModal";
 import { useProductListData } from "../redux/hooks";
+import { useSelector } from "react-redux";
 
 const ProductList = () => {
-  const productList = useProductListData(); // Direct assignment without destructuring
+  const productList = useProductListData();
+  const currencyvalue = useSelector((state) => state.currency);
+  const { symbol, value } = currencyvalue;
   const isListEmpty = productList.length === 0;
 
   return (
@@ -44,6 +47,8 @@ const ProductList = () => {
                   <tbody>
                     {productList.map((product, index) => (
                       <ProductRow
+                        value={value}
+                        symbol={symbol}
                         key={product.id}
                         product={product}
                         index={index}
@@ -60,7 +65,7 @@ const ProductList = () => {
   );
 };
 
-const ProductRow = ({ product, index }) => {
+const ProductRow = ({ product, index, value, symbol }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const openModal = (event) => {
@@ -79,8 +84,8 @@ const ProductRow = ({ product, index }) => {
         <td className="fw-normal">{product.name}</td>
         <td className="fw-normal">{product.description}</td>
         <td className="fw-normal">
-          {"$"}
-          {product.price}
+          {symbol}
+          {product.price * value}
         </td>
         <td style={{ width: "5%" }}>
           <Button variant="outline-primary" onClick={openModal}>
@@ -91,6 +96,8 @@ const ProductRow = ({ product, index }) => {
         </td>
       </tr>
       <ProductModal
+      value = {value}
+      symbol = {symbol}
         showModal={isOpen}
         closeModal={closeModal}
         product={product}

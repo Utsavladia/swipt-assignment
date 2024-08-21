@@ -73,14 +73,14 @@ const ProductModal = (props) => {
                 <EditableField
                   onItemizedItemEdit={handleInputChnage}
                   cellData={{
-                    leading: "$",
+                    leading: props.symbol,
                     type: "number",
                     name: "price", // Correct field name
                     min: 1,
                     step: "0.01",
                     precision: 2,
                     textAlign: "text-end",
-                    value: item.price, // Bind value to state
+                    value: item.price*props.value, // Bind value to state
                     id: item.id,
                   }}
                 />

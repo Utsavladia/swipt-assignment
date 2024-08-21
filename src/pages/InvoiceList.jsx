@@ -6,11 +6,13 @@ import { BsEyeFill } from "react-icons/bs";
 import InvoiceModal from "../components/InvoiceModal";
 import { useNavigate } from "react-router-dom";
 import { useInvoiceListData } from "../redux/hooks";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { deleteInvoice } from "../redux/invoicesSlice";
 
 const InvoiceList = () => {
   const { invoiceList, getOneInvoice } = useInvoiceListData();
+  const currencyvalue = useSelector(state => state.currency);
+  const {symbol, value} = currencyvalue;
   const isListEmpty = invoiceList.length === 0;
   const [copyId, setCopyId] = useState("");
   const navigate = useNavigate();
@@ -82,6 +84,8 @@ const InvoiceList = () => {
                 <tbody>
                   {invoiceList.map((invoice) => (
                     <InvoiceRow
+                    value = {value}
+                    symbol = {symbol}
                       key={invoice.id}
                       invoice={invoice}
                       navigate={navigate}
@@ -97,7 +101,7 @@ const InvoiceList = () => {
   );
 };
 
-const InvoiceRow = ({ invoice, navigate }) => {
+const InvoiceRow = ({ invoice, navigate, value, symbol }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dispatch = useDispatch();
 
@@ -124,8 +128,8 @@ const InvoiceRow = ({ invoice, navigate }) => {
       <td className="fw-normal">{invoice.billTo}</td>
       <td className="fw-normal">{invoice.dateOfIssue}</td>
       <td className="fw-normal">
-        {invoice.currency}
-        {invoice.total}
+        {symbol}
+        {invoice.total*value}
       </td>
       <td style={{ width: "5%" }}>
         <Button variant="outline-primary" onClick={handleEditClick}>

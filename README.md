@@ -27,17 +27,17 @@ This project is an Invoice Management System built using Redux Toolkit. It allow
    npm install
    ```
 3. **Environment Configuration**
-Create a .env file in the root of the project and add your API key for currency conversion:
-```bash
-REACT_APP_API_KEY = your_freecurrency_api_key
-```
+   Create a .env file in the root of the project and add your API key for currency conversion:
+   ```bash
+   REACT_APP_API_KEY = your_freecurrency_api_key
+   ```
 
 4. **Start the Development Server**
-```bash
-npm start
+   ```bash
+   npm start
 
-```
-The application will start on  [http://localhost:3000]( http://localhost:3000).
+   ```
+   The application will start on  [http://localhost:3000]( http://localhost:3000).
 
 ## Screenshots
 
